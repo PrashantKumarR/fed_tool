@@ -1,43 +1,5 @@
-export type TileType = 'icon_grid' | 'banner' | 'action' | 'quick_links';
-export type TileShape = 'rectangle' | 'square';
-
-export interface Tile {
-  type: TileType;
-  title: string;
-  displayName: string;
-  gridNudgeName: string | null;
-  imageUrl: string;
-  deeplink: string;
-  minAndroidVersion: string | null;
-  maxAndroidVersion: string | null;
-  minIosVersion: string | null;
-  maxIosVersion: string | null;
-  showHelpText: boolean;
-  helpText: string | null;
-  shape: TileShape | null;
-  showOffer: boolean;
-  showOnlyInUat: boolean;
-  // Banner specific fields
-  templateId?: string;
-  projectNumber?: string;
-  adUnitIds: string[];
-  largeBanner?: boolean;
-}
-
-export interface Category {
-  type: string;
-  displayName: string;
-  gridNudgeName?: string;
-  categoryIconUrl?: string;
-  background?: string;
-  aboveCategoryPresent?: boolean;
-  aboveCategoryDetails?: Category;
-  belowCategoryPresent?: boolean;
-  belowCategoryDetails?: Category;
-  tiles: Tile[];
-  homeScreenTileCount?: number;
-}
-
+export const TILE_TYPES = ['icon_grid', 'banner', 'action', 'quick_links'] as const;
+export const TILE_SHAPES = ['square', 'rectangle'] as const;
 export const NUDGE_RULES = [
   "15 G/H", "Account Summary", "Apply for Debit Card", "Bank Deposits", "Bhim UPI", 
   "Bill Payments", "CREDIT_CARD_SDK", "Certificates", "Check Book request", "EFee", 
@@ -54,7 +16,4 @@ export const NUDGE_RULES = [
   "CREDIT_CARD", "FASTAG", "UPI_INTERNATIONAL", "UPI Mandate", 
   "SCAN_AND_PAY_CARD", "SCAN_AND_PAY_UPI_CARD", "Schedule Payments", 
   "Top Debit Card", "Beneficiary Management"
-] as const;
-
-export const TILE_TYPES: TileType[] = ['icon_grid', 'banner'];
-export const TILE_SHAPES: TileShape[] = ['rectangle', 'square']; 
+] as const; 

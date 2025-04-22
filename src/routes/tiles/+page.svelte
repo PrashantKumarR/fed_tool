@@ -1,11 +1,13 @@
 <script lang="ts">
   import { tiles } from '$lib/stores/tiles';
   import type { Tile, TileType, TileShape } from '$lib/types';
-  import { NUDGE_RULES, TILE_TYPES, TILE_SHAPES } from '$lib/types';
+  import { NUDGE_RULES, TILE_SHAPES } from '$lib/types';
+  import { TILE_TYPES } from '$lib/constants';
 
   let editingIndex: number | null = null;
   let formData: Tile = {
     type: 'icon_grid',
+    title: '',
     displayName: '',
     gridNudgeName: '',
     imageUrl: '',
@@ -18,7 +20,11 @@
     helpText: null,
     shape: null,
     showOffer: false,
-    showOnlyInUat: true
+    showOnlyInUat: true,
+    templateId: '',
+    projectNumber: '',
+    adUnitIds: [],
+    largeBanner: false
   };
 
   function handleSubmit() {
@@ -34,6 +40,7 @@
   function resetForm() {
     formData = {
       type: 'icon_grid',
+      title: '',
       displayName: '',
       gridNudgeName: '',
       imageUrl: '',
@@ -46,7 +53,11 @@
       helpText: null,
       shape: null,
       showOffer: false,
-      showOnlyInUat: true
+      showOnlyInUat: true,
+      templateId: '',
+      projectNumber: '',
+      adUnitIds: [],
+      largeBanner: false
     };
   }
 
@@ -89,133 +100,199 @@
           </select>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Display Name</label>
-          <input
-            type="text"
-            bind:value={formData.displayName}
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
+        {#if formData.type === 'banner'}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Template ID</label>
+            <input
+              type="text"
+              bind:value={formData.templateId}
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Image URL</label>
-          <input
-            type="text"
-            bind:value={formData.imageUrl}
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-          {#if formData.imageUrl && !validateImageUrl(formData.imageUrl)}
-            <p class="text-red-500 text-sm mt-1">Image URL must start with 'image/grid/logos/'</p>
-          {/if}
-        </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Project Number</label>
+            <input
+              type="text"
+              bind:value={formData.projectNumber}
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Deeplink</label>
-          <input
-            type="text"
-            bind:value={formData.deeplink}
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Ad Unit IDs</label>
+            <div class="mt-1 space-y-2">
+              {#each formData.adUnitIds as id, index}
+                <div class="flex items-center gap-2">
+                  <input
+                    type="text"
+                    bind:value={formData.adUnitIds[index]}
+                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    on:click={() => formData.adUnitIds = formData.adUnitIds.filter((_, i) => i !== index)}
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Remove
+                  </button>
+                </div>
+              {/each}
+              <button
+                type="button"
+                on:click={() => formData.adUnitIds = [...formData.adUnitIds, '']}
+                class="text-indigo-600 hover:text-indigo-900"
+              >
+                Add Ad Unit ID
+              </button>
+            </div>
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Shape</label>
-          <select
-            bind:value={formData.shape}
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value={null}>None</option>
-            {#each TILE_SHAPES as shape}
-              <option value={shape}>{shape}</option>
-            {/each}
-          </select>
-        </div>
+          <div class="col-span-2">
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                bind:checked={formData.largeBanner}
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label class="ml-2 block text-sm text-gray-900">Large Banner</label>
+            </div>
+          </div>
+        {:else}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Display Name</label>
+            <input
+              type="text"
+              bind:value={formData.displayName}
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Grid Nudge Name</label>
-          <select
-            bind:value={formData.gridNudgeName}
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value={null}>None</option>
-            {#each NUDGE_RULES as rule}
-              <option value={rule}>{rule}</option>
-            {/each}
-          </select>
-        </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Image URL</label>
+            <input
+              type="text"
+              bind:value={formData.imageUrl}
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+            {#if formData.imageUrl && !validateImageUrl(formData.imageUrl)}
+              <p class="text-red-500 text-sm mt-1">Image URL must start with 'image/grid/logos/'</p>
+            {/if}
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Deeplink</label>
+            <input
+              type="text"
+              bind:value={formData.deeplink}
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Shape</label>
+            <select
+              bind:value={formData.shape}
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value={null}>None</option>
+              {#each TILE_SHAPES as shape}
+                <option value={shape}>{shape}</option>
+              {/each}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Grid Nudge Name</label>
+            <select
+              bind:value={formData.gridNudgeName}
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value={null}>None</option>
+              {#each NUDGE_RULES as rule}
+                <option value={rule}>{rule}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Android Version Constraints</label>
-          <div class="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              bind:value={formData.minAndroidVersion}
-              placeholder="Min Version"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-            <input
-              type="text"
-              bind:value={formData.maxAndroidVersion}
-              placeholder="Max Version"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
+        {#if formData.type !== 'banner'}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Android Version Constraints</label>
+            <div class="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                bind:value={formData.minAndroidVersion}
+                placeholder="Min Version"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                bind:value={formData.maxAndroidVersion}
+                placeholder="Max Version"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">iOS Version Constraints</label>
-          <div class="grid grid-cols-2 gap-2">
-            <input
-              type="text"
-              bind:value={formData.minIosVersion}
-              placeholder="Min Version"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-            <input
-              type="text"
-              bind:value={formData.maxIosVersion}
-              placeholder="Max Version"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
+          <div>
+            <label class="block text-sm font-medium text-gray-700">iOS Version Constraints</label>
+            <div class="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                bind:value={formData.minIosVersion}
+                placeholder="Min Version"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                bind:value={formData.maxIosVersion}
+                placeholder="Max Version"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
           </div>
-        </div>
+        {/if}
       </div>
 
       <div class="space-y-4 mt-4">
-        <div class="flex items-center">
-          <input
-            type="checkbox"
-            bind:checked={formData.showHelpText}
-            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-          />
-          <label class="ml-2 block text-sm text-gray-900">Show Help Text</label>
-        </div>
-
-        {#if formData.showHelpText}
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Help Text</label>
+        {#if formData.type !== 'banner'}
+          <div class="flex items-center">
             <input
-              type="text"
-              bind:value={formData.helpText}
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              type="checkbox"
+              bind:checked={formData.showHelpText}
+              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
             />
+            <label class="ml-2 block text-sm text-gray-900">Show Help Text</label>
+          </div>
+
+          {#if formData.showHelpText}
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Help Text</label>
+              <input
+                type="text"
+                bind:value={formData.helpText}
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+          {/if}
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              bind:checked={formData.showOffer}
+              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label class="ml-2 block text-sm text-gray-900">Show Offer</label>
           </div>
         {/if}
-
-        <div class="flex items-center">
-          <input
-            type="checkbox"
-            bind:checked={formData.showOffer}
-            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-          />
-          <label class="ml-2 block text-sm text-gray-900">Show Offer</label>
-        </div>
 
         <div class="flex items-center">
           <input
@@ -242,7 +319,8 @@
         {/if}
         <button
           type="submit"
-          disabled={!validateImageUrl(formData.imageUrl)}
+          disabled={formData.type !== 'banner' && !validateImageUrl(formData.imageUrl) || 
+                   (formData.type === 'banner' && (!formData.templateId || !formData.projectNumber || formData.adUnitIds.length === 0))}
           class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
           {editingIndex !== null ? 'Update Tile' : 'Add Tile'}
